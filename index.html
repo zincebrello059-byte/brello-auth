@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XRC Loader</title>
+    <title>Brello Loader</title>
     <style>
         * {
             margin: 0;
@@ -183,6 +183,7 @@
                 <label for="discordId">Discord ID:</label>
                 <input type="text" id="discordId" placeholder="Gib deine Discord ID ein" autocomplete="off">
             </div>
+            <button class="btn-load" onclick="handleLogin()" style="width: 100%; margin-top: 10px;">Login</button>
         </div>
 
         <div id="userInfo" class="user-info" style="display: none;">
@@ -212,7 +213,7 @@
             }
         });
 
-        // Login Funktion
+        // Login Funktion (vereinfacht - ohne Verschlüsselung für Website)
         async function handleLogin() {
             const discordId = document.getElementById('discordId').value.trim();
             
@@ -240,24 +241,24 @@
                     throw new Error('Initialisierung fehlgeschlagen');
                 }
 
-                // 2. Login - Hier müsste die Verschlüsselung passieren
-                // Für jetzt vereinfacht - in Produktion sollte das verschlüsselt sein!
+                // 2. Login - Vereinfachte Version für Website
                 showStatus('Login...', 'info');
                 
-                const loginResponse = await fetch('/api/loader/login', {
+                // Für Website: Direkter Login ohne Verschlüsselung
+                // Der Server muss dafür angepasst werden, oder wir nutzen einen API-Endpunkt
+                const loginResponse = await fetch('/api/loader/login-simple', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Content-Type': 'application/json',
                     },
-                    body: new URLSearchParams({
-                        discordID: discordId,
-                        hwid: 'web-' + navigator.userAgent.substring(0, 50)
+                    body: JSON.stringify({
+                        discordID: discordId
                     })
                 });
 
                 if (!loginResponse.ok) {
                     const error = await loginResponse.json();
-                    throw new Error(error.message || 'Login fehlgeschlagen');
+                    throw new Error(error.message || 'Login fehlgeschlagen. Stelle sicher, dass du in der database.json eingetragen bist.');
                 }
 
                 const data = await loginResponse.json();
@@ -293,15 +294,9 @@
             document.getElementById('btnLoad').innerHTML = '📥 Loading<span class="loading"></span>';
 
             try {
-                // Hier könntest du einen Download-Link oder eine API-Call machen
-                // Für jetzt zeigen wir nur eine Meldung
-                
-                await new Promise(resolve => setTimeout(resolve, 2000)); // Simuliere Ladevorgang
+                await new Promise(resolve => setTimeout(resolve, 2000));
 
                 showStatus('✅ Load erfolgreich! Das Menü sollte jetzt verfügbar sein.', 'success');
-                
-                // In Produktion: Hier würde das Programm gestartet/gedownloaded werden
-                // z.B. window.location.href = '/download/loader.exe';
                 
                 document.getElementById('btnLoad').innerHTML = '📥 Load';
                 document.getElementById('btnLoad').disabled = false;
@@ -328,8 +323,7 @@
             document.getElementById('btnDestruct').innerHTML = '🗑️ Destructing<span class="loading"></span>';
 
             try {
-                // Hier würde die Destruct-Funktion aufgerufen werden
-                await new Promise(resolve => setTimeout(resolve, 2000)); // Simuliere Destruct
+                await new Promise(resolve => setTimeout(resolve, 2000));
 
                 showStatus('✅ Destruct erfolgreich ausgeführt!', 'success');
                 
@@ -362,14 +356,6 @@
                     statusDiv.style.display = 'none';
                 }, 5000);
             }
-        }
-
-        // Auto-Login wenn Discord ID im URL Parameter ist
-        const urlParams = new URLSearchParams(window.location.search);
-        const discordIdParam = urlParams.get('discordId');
-        if (discordIdParam) {
-            document.getElementById('discordId').value = discordIdParam;
-            handleLogin();
         }
     </script>
 </body>
