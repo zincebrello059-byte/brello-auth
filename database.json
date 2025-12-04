@@ -1,0 +1,23 @@
+{
+  "users": [
+    {
+      "discordId": "123456789012345678",
+      "username": "TestUser",
+      "hwid": "",
+      "products": [
+        {
+          "name": "Fivem Client",
+          "expiry": "2099-12-31"
+        }
+      ]
+    }
+  ],
+  "config": {
+    "version": "1.0.0",
+    "statistics": {
+      "user": 1,
+      "products": 1
+    }
+  }
+}
+
