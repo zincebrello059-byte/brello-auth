@@ -11,8 +11,10 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Statische Dateien (Website)
-app.use(express.static(path.join(__dirname, 'public')));
+// Statische Dateien (Website) - Falls public/ Ordner existiert
+if (fs.existsSync(path.join(__dirname, 'public'))) {
+    app.use(express.static(path.join(__dirname, 'public')));
+}
 
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -161,7 +163,26 @@ app.get('/health', (req, res) => {
 
 // Root Endpoint - Website anzeigen
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    // Prüfe ob HTML-Datei existiert (erst public/, dann root)
+    const htmlInPublic = path.join(__dirname, 'public', 'index.html');
+    const htmlInRoot = path.join(__dirname, 'index.html');
+    
+    if (fs.existsSync(htmlInPublic)) {
+        res.sendFile(htmlInPublic);
+    } else if (fs.existsSync(htmlInRoot)) {
+        res.sendFile(htmlInRoot);
+    } else {
+        // Fallback: JSON API Info
+        res.json({
+            message: 'XRC Authentication Server',
+            endpoints: {
+                initialize: 'POST /api/loader/initialize',
+                login: 'POST /api/loader/login',
+                health: 'GET /health'
+            },
+            note: 'HTML website not found. Please add index.html to the repository.'
+        });
+    }
 });
 
 // API Info Endpoint
