@@ -27,9 +27,6 @@ const upload = multer();
 // Datenbank-Datei
 const DB_FILE = path.join(__dirname, 'database.json');
 
-// Session-Speicher (in Produktion sollte das eine Datenbank sein)
-const activeSessions = new Map();
-
 // Hilfsfunktion zum Laden der Datenbank
 function loadDatabase() {
     try {
@@ -126,13 +123,15 @@ app.post('/api/loader/login', upload.fields([]), (req, res) => {
             });
         }
 
-        // HWID-Prüfung (optional - kann auch deaktiviert werden)
-        if (user.hwid && user.hwid !== hwid) {
-            console.log(`HWID mismatch for user ${discordId}`);
-            // Optional: HWID aktualisieren oder ablehnen
-            // user.hwid = hwid; // HWID aktualisieren
-        } else if (!user.hwid) {
+        // HWID-Verwaltung - automatisch speichern/aktualisieren
+        if (!user.hwid) {
             // Erste Anmeldung - HWID speichern
+            user.hwid = hwid;
+            saveDatabase(db);
+            console.log(`HWID gespeichert für Benutzer ${discordId}`);
+        } else if (user.hwid !== hwid) {
+            // HWID hat sich geändert - aktualisiere (für Website oder neuen PC)
+            console.log(`HWID aktualisiert für Benutzer ${discordId}`);
             user.hwid = hwid;
             saveDatabase(db);
         }
@@ -143,14 +142,6 @@ app.post('/api/loader/login', upload.fields([]), (req, res) => {
             expiry: p.expiry || '2099-12-31'
         }));
 
-        // Session-Token generieren (einfach für jetzt)
-        const sessionToken = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        activeSessions.set(sessionToken, {
-            discordId: discordId,
-            loginTime: Date.now(),
-            status: 'logged_in'
-        });
-
         // Erfolgreiche Antwort
         const response = {
             message: 'Login successful',
@@ -159,8 +150,7 @@ app.post('/api/loader/login', upload.fields([]), (req, res) => {
                 DiscordID: user.discordId,
                 hwid: user.hwid,
                 products: products
-            },
-            sessionToken: sessionToken
+            }
         };
 
         res.status(200).json(response);
@@ -168,84 +158,6 @@ app.post('/api/loader/login', upload.fields([]), (req, res) => {
         console.error('Login error:', error);
         res.status(500).json({
             message: 'Login failed',
-            error: error.message
-        });
-    }
-});
-
-// Endpoint: /api/loader/load - Startet das Programm/Injiziert das Menü
-app.post('/api/loader/load', upload.fields([]), (req, res) => {
-    try {
-        const sessionToken = req.body.sessionToken || req.headers['x-session-token'];
-        
-        if (!sessionToken || !activeSessions.has(sessionToken)) {
-            return res.status(401).json({
-                message: 'Invalid or expired session. Please login again.'
-            });
-        }
-
-        const session = activeSessions.get(sessionToken);
-        
-        // Update Session Status
-        session.status = 'loaded';
-        session.loadTime = Date.now();
-        activeSessions.set(sessionToken, session);
-
-        console.log(`Load triggered for user: ${session.discordId}`);
-
-        // Antwort mit Download-Link oder Status
-        const response = {
-            message: 'Load successful. Program is ready to inject.',
-            status: 'loaded',
-            downloadUrl: '/download/loader.exe', // Falls du eine .exe zum Download anbietest
-            instructions: 'Start the program and it will automatically inject into FiveM.'
-        };
-
-        res.status(200).json(response);
-    } catch (error) {
-        console.error('Load error:', error);
-        res.status(500).json({
-            message: 'Load failed',
-            error: error.message
-        });
-    }
-});
-
-// Endpoint: /api/loader/destruct - Entlädt das Programm/Cleaned alles
-app.post('/api/loader/destruct', upload.fields([]), (req, res) => {
-    try {
-        const sessionToken = req.body.sessionToken || req.headers['x-session-token'];
-        
-        if (!sessionToken || !activeSessions.has(sessionToken)) {
-            return res.status(401).json({
-                message: 'Invalid or expired session. Please login again.'
-            });
-        }
-
-        const session = activeSessions.get(sessionToken);
-        
-        // Update Session Status
-        session.status = 'destructed';
-        session.destructTime = Date.now();
-        activeSessions.set(sessionToken, session);
-
-        console.log(`Destruct triggered for user: ${session.discordId}`);
-
-        // Nach Destruct: Session löschen (Logout)
-        setTimeout(() => {
-            activeSessions.delete(sessionToken);
-        }, 5000);
-
-        const response = {
-            message: 'Destruct successful. Program has been unloaded and cleaned.',
-            status: 'destructed'
-        };
-
-        res.status(200).json(response);
-    } catch (error) {
-        console.error('Destruct error:', error);
-        res.status(500).json({
-            message: 'Destruct failed',
             error: error.message
         });
     }
@@ -273,8 +185,6 @@ app.get('/', (req, res) => {
             endpoints: {
                 initialize: 'POST /api/loader/initialize',
                 login: 'POST /api/loader/login',
-                load: 'POST /api/loader/load',
-                destruct: 'POST /api/loader/destruct',
                 health: 'GET /health'
             },
             note: 'HTML website not found. Please add index.html to the repository.'
@@ -289,8 +199,6 @@ app.get('/api', (req, res) => {
         endpoints: {
             initialize: 'POST /api/loader/initialize',
             login: 'POST /api/loader/login',
-            load: 'POST /api/loader/load',
-            destruct: 'POST /api/loader/destruct',
             health: 'GET /health'
         }
     });
@@ -318,3 +226,4 @@ app.listen(PORT, () => {
     
     console.log('Bereit für Anfragen!\n');
 });
+
