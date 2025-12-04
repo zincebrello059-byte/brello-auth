@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brello Loader</title>
+    <title>Bypass Brello</title>
     <style>
         * {
             margin: 0;
@@ -12,107 +12,141 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000000;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            color: #ffffff;
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 12px;
+            padding: 50px;
+            max-width: 600px;
             width: 100%;
-            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
         }
 
         h1 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 32px;
+            color: #ffffff;
+            margin-bottom: 40px;
+            font-size: 42px;
+            font-weight: 300;
+            text-align: center;
+            letter-spacing: 2px;
         }
 
         .status {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-weight: bold;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-weight: 500;
+            font-size: 14px;
+            display: none;
         }
 
         .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: #1a1a1a;
+            color: #00ff00;
+            border: 1px solid #00ff00;
         }
 
         .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: #1a1a1a;
+            color: #ff0000;
+            border: 1px solid #ff0000;
         }
 
         .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+            background: #1a1a1a;
+            color: #ffffff;
+            border: 1px solid #555555;
         }
 
         .input-group {
-            margin-bottom: 20px;
-            text-align: left;
+            margin-bottom: 28px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 600;
+            margin-bottom: 10px;
+            color: #ffffff;
+            font-weight: 500;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
+            padding: 16px 20px;
+            background: #0a0a0a;
+            border: 1px solid #333333;
             border-radius: 8px;
             font-size: 16px;
-            transition: border-color 0.3s;
+            color: #ffffff;
+            transition: all 0.3s;
         }
 
         input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #ffffff;
+            background: #111111;
+        }
+
+        input::placeholder {
+            color: #666666;
         }
 
         .button-group {
             display: flex;
-            gap: 15px;
-            margin-top: 30px;
+            gap: 16px;
+            margin-top: 32px;
         }
 
         button {
             flex: 1;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
+            padding: 18px 32px;
+            border: 1px solid #ffffff;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.3s;
-            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-login {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+            width: 100%;
+        }
+
+        .btn-login:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
         }
 
         .btn-load {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000000;
+            color: #ffffff;
+            border-color: #ffffff;
         }
 
         .btn-load:hover {
+            background: #1a1a1a;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
         .btn-load:active {
@@ -120,12 +154,14 @@
         }
 
         .btn-destruct {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: #000000;
+            color: #ff0000;
+            border-color: #ff0000;
         }
 
         .btn-destruct:hover {
+            background: #1a0000;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
         }
 
         .btn-destruct:active {
@@ -133,18 +169,18 @@
         }
 
         button:disabled {
-            opacity: 0.6;
+            opacity: 0.3;
             cursor: not-allowed;
             transform: none !important;
         }
 
         .loading {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            border-top-color: white;
+            border-top-color: #ffffff;
             animation: spin 0.8s linear infinite;
             margin-left: 10px;
         }
@@ -154,50 +190,58 @@
         }
 
         .user-info {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            background: #0a0a0a;
+            border: 1px solid #333333;
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 28px;
             text-align: left;
         }
 
         .user-info h3 {
-            margin-bottom: 10px;
-            color: #333;
+            margin-bottom: 12px;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 500;
         }
 
         .user-info p {
-            color: #666;
-            margin: 5px 0;
+            color: #cccccc;
+            margin: 6px 0;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🚀 XRC Loader</h1>
+        <h1>BYPASS BRELLO</h1>
 
-        <div id="status" class="status info" style="display: none;"></div>
+        <div id="status" class="status"></div>
 
         <div id="loginForm">
             <div class="input-group">
-                <label for="discordId">Discord ID:</label>
-                <input type="text" id="discordId" placeholder="Gib deine Discord ID ein" autocomplete="off">
+                <label for="discordId">Discord ID</label>
+                <input type="text" id="discordId" placeholder="985259777661739128" autocomplete="off">
             </div>
-            <button class="btn-load" onclick="handleLogin()" style="width: 100%; margin-top: 10px;">Login</button>
+            <button class="btn-login" onclick="handleLogin()">Login</button>
         </div>
 
-        <div id="userInfo" class="user-info" style="display: none;">
-            <h3>✅ Eingeloggt als:</h3>
+        <div id="userInfo" class="user-info hidden">
+            <h3>✓ Eingeloggt</h3>
             <p id="username"></p>
             <p id="userProducts"></p>
         </div>
 
-        <div class="button-group">
-            <button id="btnLoad" class="btn-load" onclick="handleLoad()" disabled>
-                📥 Load
+        <div id="actionButtons" class="button-group hidden">
+            <button id="btnLoad" class="btn-load" onclick="handleLoad()">
+                Load
             </button>
-            <button id="btnDestruct" class="btn-destruct" onclick="handleDestruct()" disabled>
-                🗑️ Destruct
+            <button id="btnDestruct" class="btn-destruct" onclick="handleDestruct()">
+                Destruct
             </button>
         </div>
     </div>
@@ -213,7 +257,7 @@
             }
         });
 
-        // Login Funktion (vereinfacht - ohne Verschlüsselung für Website)
+        // Login Funktion
         async function handleLogin() {
             const discordId = document.getElementById('discordId').value.trim();
             
@@ -223,62 +267,75 @@
             }
 
             showStatus('Initialisiere...', 'info');
-            document.getElementById('btnLoad').disabled = true;
-
+            
             try {
                 // 1. Initialize
+                const formData1 = new FormData();
+                formData1.append('version', '1.0.0');
+                
                 const initResponse = await fetch('/api/loader/initialize', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        version: '1.0.0'
-                    })
+                    body: formData1
                 });
 
                 if (!initResponse.ok) {
-                    throw new Error('Initialisierung fehlgeschlagen');
+                    const errorText = await initResponse.text();
+                    throw new Error('Initialisierung fehlgeschlagen: ' + errorText);
                 }
 
-                // 2. Login - Vereinfachte Version für Website
+                const initData = await initResponse.json();
+                console.log('Initialize:', initData);
+
+                // 2. Login - Versuche erst verschlüsselt, dann vereinfacht
                 showStatus('Login...', 'info');
                 
-                // Für Website: Direkter Login ohne Verschlüsselung
-                // Der Server muss dafür angepasst werden, oder wir nutzen einen API-Endpunkt
-                const loginResponse = await fetch('/api/loader/login-simple', {
+                // Vereinfachter Login (für Website)
+                const loginFormData = new FormData();
+                loginFormData.append('discordID', discordId);
+                loginFormData.append('hwid', 'web-' + navigator.userAgent.substring(0, 50));
+                
+                const loginResponse = await fetch('/api/loader/login', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        discordID: discordId
-                    })
+                    body: loginFormData
                 });
 
                 if (!loginResponse.ok) {
-                    const error = await loginResponse.json();
-                    throw new Error(error.message || 'Login fehlgeschlagen. Stelle sicher, dass du in der database.json eingetragen bist.');
+                    const errorText = await loginResponse.text();
+                    let errorMessage = 'Login fehlgeschlagen';
+                    
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorMessage = errorJson.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = errorText || errorMessage;
+                    }
+                    
+                    throw new Error(errorMessage);
                 }
 
                 const data = await loginResponse.json();
+                
+                if (!data.user) {
+                    throw new Error('Keine Benutzerdaten erhalten');
+                }
+
                 currentUser = data.user;
                 isLoggedIn = true;
 
                 // UI aktualisieren
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('userInfo').style.display = 'block';
-                document.getElementById('username').textContent = `Benutzer: ${data.user.username}`;
-                document.getElementById('userProducts').textContent = 
-                    `Produkte: ${data.user.products.map(p => p.name).join(', ')}`;
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('userInfo').classList.remove('hidden');
+                document.getElementById('actionButtons').classList.remove('hidden');
                 
-                document.getElementById('btnLoad').disabled = false;
-                document.getElementById('btnDestruct').disabled = false;
+                document.getElementById('username').textContent = `Benutzer: ${data.user.username || discordId}`;
+                document.getElementById('userProducts').textContent = 
+                    `Produkte: ${data.user.products ? data.user.products.map(p => p.name).join(', ') : 'Keine'}`;
 
-                showStatus('✅ Erfolgreich eingeloggt!', 'success');
+                showStatus('✓ Erfolgreich eingeloggt!', 'success');
             } catch (error) {
-                showStatus('❌ Fehler: ' + error.message, 'error');
-                document.getElementById('btnLoad').disabled = true;
+                console.error('Login error:', error);
+                showStatus('✗ ' + error.message, 'error');
+                isLoggedIn = false;
             }
         }
 
@@ -289,20 +346,19 @@
                 return;
             }
 
-            showStatus('🔄 Lade...', 'info');
+            showStatus('Lade...', 'info');
             document.getElementById('btnLoad').disabled = true;
-            document.getElementById('btnLoad').innerHTML = '📥 Loading<span class="loading"></span>';
+            const originalText = document.getElementById('btnLoad').innerHTML;
+            document.getElementById('btnLoad').innerHTML = 'Loading<span class="loading"></span>';
 
             try {
                 await new Promise(resolve => setTimeout(resolve, 2000));
-
-                showStatus('✅ Load erfolgreich! Das Menü sollte jetzt verfügbar sein.', 'success');
-                
-                document.getElementById('btnLoad').innerHTML = '📥 Load';
+                showStatus('✓ Load erfolgreich!', 'success');
+                document.getElementById('btnLoad').innerHTML = originalText;
                 document.getElementById('btnLoad').disabled = false;
             } catch (error) {
-                showStatus('❌ Fehler beim Laden: ' + error.message, 'error');
-                document.getElementById('btnLoad').innerHTML = '📥 Load';
+                showStatus('✗ Fehler beim Laden: ' + error.message, 'error');
+                document.getElementById('btnLoad').innerHTML = originalText;
                 document.getElementById('btnLoad').disabled = false;
             }
         }
@@ -318,28 +374,28 @@
                 return;
             }
 
-            showStatus('🗑️ Destruct läuft...', 'info');
+            showStatus('Destruct läuft...', 'info');
             document.getElementById('btnDestruct').disabled = true;
-            document.getElementById('btnDestruct').innerHTML = '🗑️ Destructing<span class="loading"></span>';
+            const originalText = document.getElementById('btnDestruct').innerHTML;
+            document.getElementById('btnDestruct').innerHTML = 'Destructing<span class="loading"></span>';
 
             try {
                 await new Promise(resolve => setTimeout(resolve, 2000));
-
-                showStatus('✅ Destruct erfolgreich ausgeführt!', 'success');
+                showStatus('✓ Destruct erfolgreich ausgeführt!', 'success');
                 
                 // Logout
                 isLoggedIn = false;
                 currentUser = null;
-                document.getElementById('loginForm').style.display = 'block';
-                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('userInfo').classList.add('hidden');
+                document.getElementById('actionButtons').classList.add('hidden');
                 document.getElementById('discordId').value = '';
-                document.getElementById('btnLoad').disabled = true;
-                document.getElementById('btnDestruct').disabled = true;
                 
-                document.getElementById('btnDestruct').innerHTML = '🗑️ Destruct';
+                document.getElementById('btnDestruct').innerHTML = originalText;
+                document.getElementById('btnDestruct').disabled = false;
             } catch (error) {
-                showStatus('❌ Fehler beim Destruct: ' + error.message, 'error');
-                document.getElementById('btnDestruct').innerHTML = '🗑️ Destruct';
+                showStatus('✗ Fehler beim Destruct: ' + error.message, 'error');
+                document.getElementById('btnDestruct').innerHTML = originalText;
                 document.getElementById('btnDestruct').disabled = false;
             }
         }
@@ -360,4 +416,3 @@
     </script>
 </body>
 </html>
-
