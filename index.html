@@ -249,6 +249,7 @@
     <script>
         let isLoggedIn = false;
         let currentUser = null;
+        let sessionToken = null;
 
         // Discord ID Eingabe - Enter Taste
         document.getElementById('discordId').addEventListener('keypress', function(e) {
@@ -320,6 +321,7 @@
                 }
 
                 currentUser = data.user;
+                sessionToken = data.sessionToken; // Session-Token speichern
                 isLoggedIn = true;
 
                 // UI aktualisieren
@@ -339,9 +341,9 @@
             }
         }
 
-        // Load Funktion
+        // Load Funktion - Startet das Programm/Injiziert das Menü
         async function handleLoad() {
-            if (!isLoggedIn) {
+            if (!isLoggedIn || !sessionToken) {
                 showStatus('Bitte zuerst einloggen!', 'error');
                 return;
             }
@@ -352,8 +354,22 @@
             document.getElementById('btnLoad').innerHTML = 'Loading<span class="loading"></span>';
 
             try {
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                showStatus('✓ Load erfolgreich!', 'success');
+                const loadFormData = new FormData();
+                loadFormData.append('sessionToken', sessionToken);
+                
+                const loadResponse = await fetch('/api/loader/load', {
+                    method: 'POST',
+                    body: loadFormData
+                });
+
+                if (!loadResponse.ok) {
+                    const error = await loadResponse.json();
+                    throw new Error(error.message || 'Load fehlgeschlagen');
+                }
+
+                const data = await loadResponse.json();
+                
+                showStatus('✓ Load erfolgreich! Starte das Programm, es wird automatisch injizieren.', 'success');
                 document.getElementById('btnLoad').innerHTML = originalText;
                 document.getElementById('btnLoad').disabled = false;
             } catch (error) {
@@ -363,14 +379,14 @@
             }
         }
 
-        // Destruct Funktion
+        // Destruct Funktion - Entlädt das Programm/Cleaned alles
         async function handleDestruct() {
-            if (!isLoggedIn) {
+            if (!isLoggedIn || !sessionToken) {
                 showStatus('Bitte zuerst einloggen!', 'error');
                 return;
             }
 
-            if (!confirm('⚠️ Bist du sicher, dass du Destruct ausführen möchtest?')) {
+            if (!confirm('⚠️ Bist du sicher, dass du Destruct ausführen möchtest? Das Programm wird entladen und alles wird gecleant.')) {
                 return;
             }
 
@@ -380,16 +396,33 @@
             document.getElementById('btnDestruct').innerHTML = 'Destructing<span class="loading"></span>';
 
             try {
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                showStatus('✓ Destruct erfolgreich ausgeführt!', 'success');
+                const destructFormData = new FormData();
+                destructFormData.append('sessionToken', sessionToken);
                 
-                // Logout
-                isLoggedIn = false;
-                currentUser = null;
-                document.getElementById('loginForm').classList.remove('hidden');
-                document.getElementById('userInfo').classList.add('hidden');
-                document.getElementById('actionButtons').classList.add('hidden');
-                document.getElementById('discordId').value = '';
+                const destructResponse = await fetch('/api/loader/destruct', {
+                    method: 'POST',
+                    body: destructFormData
+                });
+
+                if (!destructResponse.ok) {
+                    const error = await destructResponse.json();
+                    throw new Error(error.message || 'Destruct fehlgeschlagen');
+                }
+
+                const data = await destructResponse.json();
+                
+                showStatus('✓ Destruct erfolgreich! Das Programm wurde entladen und alles wurde gecleant.', 'success');
+                
+                // Logout nach Destruct
+                setTimeout(() => {
+                    isLoggedIn = false;
+                    currentUser = null;
+                    sessionToken = null;
+                    document.getElementById('loginForm').classList.remove('hidden');
+                    document.getElementById('userInfo').classList.add('hidden');
+                    document.getElementById('actionButtons').classList.add('hidden');
+                    document.getElementById('discordId').value = '';
+                }, 3000);
                 
                 document.getElementById('btnDestruct').innerHTML = originalText;
                 document.getElementById('btnDestruct').disabled = false;
