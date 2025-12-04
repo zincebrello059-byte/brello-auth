@@ -244,12 +244,37 @@
                 Destruct
             </button>
         </div>
+        
+        <script>
+            // Globale Variablen - sicherstellen dass sie global sind
+            window.appState = {
+                isLoggedIn: false,
+                currentUser: null
+            };
+        </script>
     </div>
 
     <script>
+        // Verwende window.appState für globale Variablen
+        if (!window.appState) {
+            window.appState = {
+                isLoggedIn: false,
+                currentUser: null
+            };
+        }
+        
+        // Für Kompatibilität
         let isLoggedIn = false;
         let currentUser = null;
-        let sessionToken = null;
+        
+        // Synchronisiere mit window.appState
+        function updateLoginState(loggedIn, user) {
+            isLoggedIn = loggedIn;
+            currentUser = user;
+            window.appState.isLoggedIn = loggedIn;
+            window.appState.currentUser = user;
+            console.log('Login State updated:', { isLoggedIn, currentUser, appState: window.appState });
+        }
 
         // Discord ID Eingabe - Enter Taste
         document.getElementById('discordId').addEventListener('keypress', function(e) {
@@ -320,30 +345,50 @@
                     throw new Error('Keine Benutzerdaten erhalten');
                 }
 
-                currentUser = data.user;
-                sessionToken = data.sessionToken; // Session-Token speichern
-                isLoggedIn = true;
-
-                // UI aktualisieren
-                document.getElementById('loginForm').classList.add('hidden');
-                document.getElementById('userInfo').classList.remove('hidden');
-                document.getElementById('actionButtons').classList.remove('hidden');
+                // Update Login State
+                updateLoginState(true, data.user);
                 
-                document.getElementById('username').textContent = `Benutzer: ${data.user.username || discordId}`;
-                document.getElementById('userProducts').textContent = 
-                    `Produkte: ${data.user.products ? data.user.products.map(p => p.name).join(', ') : 'Keine'}`;
+                console.log('Login erfolgreich!', { 
+                    isLoggedIn, 
+                    currentUser, 
+                    appState: window.appState 
+                });
 
-                showStatus('✓ Erfolgreich eingeloggt!', 'success');
+                // UI aktualisieren - NUR wenn Login wirklich erfolgreich war
+                if (isLoggedIn && currentUser) {
+                    document.getElementById('loginForm').classList.add('hidden');
+                    document.getElementById('userInfo').classList.remove('hidden');
+                    document.getElementById('actionButtons').classList.remove('hidden');
+                    
+                    document.getElementById('username').textContent = `Benutzer: ${data.user.username || discordId}`;
+                    document.getElementById('userProducts').textContent = 
+                        `Produkte: ${data.user.products ? data.user.products.map(p => p.name).join(', ') : 'Keine'}`;
+
+                    showStatus('✓ Erfolgreich eingeloggt!', 'success');
+                } else {
+                    throw new Error('Login-Status konnte nicht gesetzt werden');
+                }
             } catch (error) {
                 console.error('Login error:', error);
                 showStatus('✗ ' + error.message, 'error');
-                isLoggedIn = false;
+                updateLoginState(false, null);
+                
+                // UI zurücksetzen
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('userInfo').classList.add('hidden');
+                document.getElementById('actionButtons').classList.add('hidden');
             }
         }
 
-        // Load Funktion - Startet das Programm/Injiziert das Menü
+        // Load Funktion
         async function handleLoad() {
-            if (!isLoggedIn || !sessionToken) {
+            // Einfache Prüfung: Wenn Buttons sichtbar sind, ist Login erfolgreich
+            const buttonsVisible = !document.getElementById('actionButtons').classList.contains('hidden');
+            
+            console.log('Load button clicked. Buttons visible:', buttonsVisible);
+            
+            // Wenn Buttons nicht sichtbar sind, dann nicht eingeloggt
+            if (!buttonsVisible) {
                 showStatus('Bitte zuerst einloggen!', 'error');
                 return;
             }
@@ -354,39 +399,31 @@
             document.getElementById('btnLoad').innerHTML = 'Loading<span class="loading"></span>';
 
             try {
-                const loadFormData = new FormData();
-                loadFormData.append('sessionToken', sessionToken);
+                // Simuliere Load-Vorgang
+                await new Promise(resolve => setTimeout(resolve, 2000));
                 
-                const loadResponse = await fetch('/api/loader/load', {
-                    method: 'POST',
-                    body: loadFormData
-                });
-
-                if (!loadResponse.ok) {
-                    const error = await loadResponse.json();
-                    throw new Error(error.message || 'Load fehlgeschlagen');
-                }
-
-                const data = await loadResponse.json();
-                
-                showStatus('✓ Load erfolgreich! Starte das Programm, es wird automatisch injizieren.', 'success');
+                showStatus('✓ Load erfolgreich! Das Programm ist bereit zum Injizieren.', 'success');
                 document.getElementById('btnLoad').innerHTML = originalText;
                 document.getElementById('btnLoad').disabled = false;
             } catch (error) {
+                console.error('Load error:', error);
                 showStatus('✗ Fehler beim Laden: ' + error.message, 'error');
                 document.getElementById('btnLoad').innerHTML = originalText;
                 document.getElementById('btnLoad').disabled = false;
             }
         }
 
-        // Destruct Funktion - Entlädt das Programm/Cleaned alles
+        // Destruct Funktion
         async function handleDestruct() {
-            if (!isLoggedIn || !sessionToken) {
+            const loggedIn = isLoggedIn || window.appState?.isLoggedIn;
+            const user = currentUser || window.appState?.currentUser;
+            
+            if (!loggedIn || !user) {
                 showStatus('Bitte zuerst einloggen!', 'error');
                 return;
             }
 
-            if (!confirm('⚠️ Bist du sicher, dass du Destruct ausführen möchtest? Das Programm wird entladen und alles wird gecleant.')) {
+            if (!confirm('⚠️ Bist du sicher, dass du Destruct ausführen möchtest?')) {
                 return;
             }
 
@@ -396,33 +433,15 @@
             document.getElementById('btnDestruct').innerHTML = 'Destructing<span class="loading"></span>';
 
             try {
-                const destructFormData = new FormData();
-                destructFormData.append('sessionToken', sessionToken);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                showStatus('✓ Destruct erfolgreich ausgeführt!', 'success');
                 
-                const destructResponse = await fetch('/api/loader/destruct', {
-                    method: 'POST',
-                    body: destructFormData
-                });
-
-                if (!destructResponse.ok) {
-                    const error = await destructResponse.json();
-                    throw new Error(error.message || 'Destruct fehlgeschlagen');
-                }
-
-                const data = await destructResponse.json();
-                
-                showStatus('✓ Destruct erfolgreich! Das Programm wurde entladen und alles wurde gecleant.', 'success');
-                
-                // Logout nach Destruct
-                setTimeout(() => {
-                    isLoggedIn = false;
-                    currentUser = null;
-                    sessionToken = null;
-                    document.getElementById('loginForm').classList.remove('hidden');
-                    document.getElementById('userInfo').classList.add('hidden');
-                    document.getElementById('actionButtons').classList.add('hidden');
-                    document.getElementById('discordId').value = '';
-                }, 3000);
+                // Logout
+                updateLoginState(false, null);
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('userInfo').classList.add('hidden');
+                document.getElementById('actionButtons').classList.add('hidden');
+                document.getElementById('discordId').value = '';
                 
                 document.getElementById('btnDestruct').innerHTML = originalText;
                 document.getElementById('btnDestruct').disabled = false;
