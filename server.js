@@ -77,30 +77,35 @@ app.post('/api/loader/initialize', upload.fields([]), (req, res) => {
     }
 });
 
-// Endpoint: /api/loader/login
+// Endpoint: /api/loader/login (vereinfacht für Website)
 app.post('/api/loader/login', upload.fields([]), (req, res) => {
     try {
-        const encryptedDiscordIdBase64 = req.body.discordID;
-        const encryptedHwidBase64 = req.body.hwid;
+        let discordId = req.body.discordID;
+        let hwid = req.body.hwid;
 
-        if (!encryptedDiscordIdBase64 || !encryptedHwidBase64) {
+        // Prüfe ob Daten verschlüsselt sind (vom C++ Client) oder unverschlüsselt (von Website)
+        if (!discordId || !hwid) {
             return res.status(400).json({
                 message: 'Missing required fields (discordID or hwid)'
             });
         }
 
-        // Base64 dekodieren
-        const encryptedDiscordIdHex = base64Decode(encryptedDiscordIdBase64);
-        const encryptedHwidHex = base64Decode(encryptedHwidBase64);
-
-        // AES entschlüsseln
-        const discordId = decryptData(encryptedDiscordIdHex);
-        const hwid = decryptData(encryptedHwidHex);
-
-        if (!discordId || !hwid) {
-            return res.status(400).json({
-                message: 'Failed to decrypt data'
-            });
+        // Versuche zu entschlüsseln (wenn vom C++ Client)
+        // Wenn Entschlüsselung fehlschlägt, sind die Daten bereits unverschlüsselt (von Website)
+        try {
+            const encryptedDiscordIdHex = base64Decode(discordId);
+            const encryptedHwidHex = base64Decode(hwid);
+            
+            const decryptedDiscordId = decryptData(encryptedDiscordIdHex);
+            const decryptedHwid = decryptData(encryptedHwidHex);
+            
+            if (decryptedDiscordId && decryptedHwid) {
+                discordId = decryptedDiscordId;
+                hwid = decryptedHwid;
+            }
+        } catch (e) {
+            // Daten sind bereits unverschlüsselt (von Website) - verwende direkt
+            console.log('Login with unencrypted data (from website)');
         }
 
         console.log(`Login attempt - DiscordID: ${discordId}, HWID: ${hwid}`);
